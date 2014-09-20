@@ -8,7 +8,7 @@ Get the Simple JSON for Java and then add it to the Guacamole CLASSPATH
 You can copy, symlink or adjust Tomcat{6,7,8} configurations
 
 	apt-get install libjson-simple-java
-	cp /usr/share/java/json-simple-1.1.1.jar /var/lib/tomcat7/webapps/guacamole/WEB-INF/lib/
+	emerge dev-java/json-simple
 
 From the guacamole-client root clone this project into extensions/
 
@@ -17,11 +17,13 @@ From the guacamole-client root clone this project into extensions/
 	cd guacamole-auth-http
 	mvn package
 	cp target/guacamole-auth-http-2014.38.jar /var/lib/tomcat7/webapps/guacamole/WEB-INF/lib/
+	cp /usr/share/java/json-simple-1.1.1.jar /var/lib/tomcat7/webapps/guacamole/WEB-INF/lib/
+
 	/etc/init.d/tomcat7 restart
 
 ## Configuration
 
-Add the following to your guacamole.properties (/etc/guacamole)
+Add the following to your guacamole.properties (/etc/guacamole or /usr/share/tomcat7/.guacamole/guacamole.properties)
 
 	auth-provider com.edoceo.guacamole.auth.HttpAuthenticationProvider
 	auth-http-page: http://sso.example.com/external/guacamole
@@ -32,7 +34,9 @@ Add the following to your guacamole.properties (/etc/guacamole)
 The HTTP Serer will be sent
 
 	POST /external/guacamole HTTP/1.1
-	Content-Length:
+	Accept: application/json
+	Authorization:  Whatever Here is added as Authorization header and is required
+	Content-Length: 47
 	Content-Type: application/json
 
 	{
