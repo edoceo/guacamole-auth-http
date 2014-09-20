@@ -18,7 +18,6 @@
 
 package com.edoceo.guacamole.auth;
 
-import java.util.Map;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -34,6 +33,9 @@ import java.util.TreeMap;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.glyptodon.guacamole.GuacamoleException;
 import org.glyptodon.guacamole.GuacamoleServerException;
 import org.glyptodon.guacamole.net.auth.simple.SimpleAuthenticationProvider;
@@ -41,34 +43,32 @@ import org.glyptodon.guacamole.net.auth.Credentials;
 import org.glyptodon.guacamole.properties.FileGuacamoleProperty;
 import org.glyptodon.guacamole.properties.GuacamoleProperties;
 import org.glyptodon.guacamole.protocol.GuacamoleConfiguration;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.XMLReaderFactory;
+// import org.xml.sax.InputSource;
+// import org.xml.sax.SAXException;
+// import org.xml.sax.XMLReader;
+// import org.xml.sax.helpers.XMLReaderFactory;
 
 
 public class HttpAuthenticationProvider extends SimpleAuthenticationProvider {
 
-    /**
-     * Logger for this class.
-     */
-    private Logger logger = LoggerFactory.getLogger(HttpAuthenticationProvider.class);
+	/**
+	 * Logger for this class.
+	 */
+	private Logger logger = LoggerFactory.getLogger(HttpAuthenticationProvider.class);
 
-    /**
-     * Map of all known configurations, indexed by identifier.
-     */
-    private Map<String, GuacamoleConfiguration> configs;
+	/**
+	 * Map of all known configurations, indexed by identifier.
+	 */
+	private Map<String, GuacamoleConfiguration> configs;
 
-    public synchronized void init() throws GuacamoleException {
+	public synchronized void init() throws GuacamoleException {
 		// Nothing
-    }
+	}
 
-    @Override
-    public Map<String, GuacamoleConfiguration> getAuthorizedConfigurations(Credentials credentials) throws GuacamoleException {
+	@Override
+	public Map<String, GuacamoleConfiguration> getAuthorizedConfigurations(Credentials credentials) throws GuacamoleException {
 
-    	// Verify Password Inputs
+		// Verify Password Inputs
 		if (null == credentials.getUsername()) {
 			logger.info("Invalid username");
 			return null;
@@ -81,39 +81,39 @@ public class HttpAuthenticationProvider extends SimpleAuthenticationProvider {
 
 		Map<String, GuacamoleConfiguration> configs = new TreeMap<String, GuacamoleConfiguration>();
 
-    	try {
-    		String auth_page = GuacamoleProperties.getRequiredProperty( HttpAuthenticationProperties.AUTH_PAGE );
-    		String head_auth = GuacamoleProperties.getRequiredProperty( HttpAuthenticationProperties.HEAD_AUTH );
+		try {
+			String auth_page = GuacamoleProperties.getRequiredProperty( HttpAuthenticationProperties.AUTH_PAGE );
+			String head_auth = GuacamoleProperties.getRequiredProperty( HttpAuthenticationProperties.HEAD_AUTH );
 
-    		logger.info("url:" + auth_page);
-    		URL u = new URL(auth_page);
+			logger.info("url:" + auth_page);
+			URL u = new URL(auth_page);
 
-    		HttpURLConnection uc = (HttpURLConnection) u.openConnection();
-    		uc.setDoOutput(true);
-    		uc.setDoInput(true);
+			HttpURLConnection uc = (HttpURLConnection) u.openConnection();
+			uc.setDoOutput(true);
+			uc.setDoInput(true);
 
-    		// // uc.setRequestProperty("Accept-Charset");
-    		if (head_auth.length() > 0) {
-    			uc.setRequestProperty("Authorization", head_auth);
-    		}
-    		// uc.setRequestProperty(GuacamoleProperties.getRequiredProperty("auth-http-head-add"));
-    		uc.setRequestProperty("Content-Type", "application/json; charset=uf-8;");
-    		uc.connect();
+			// // uc.setRequestProperty("Accept-Charset");
+			if (head_auth.length() > 0) {
+				uc.setRequestProperty("Authorization", head_auth);
+			}
+			// uc.setRequestProperty(GuacamoleProperties.getRequiredProperty("auth-http-head-add"));
+			uc.setRequestProperty("Content-Type", "application/json; charset=uf-8;");
+			uc.connect();
 
-    		// Send
-    		// @todo Build with JSON
-    		JSONObject sendJSON = new JSONObject();
-    		sendJSON.put("username", credentials.getUsername());
-    		sendJSON.put("password", credentials.getPassword());
+			// Send
+			// @todo Build with JSON
+			JSONObject sendJSON = new JSONObject();
+			sendJSON.put("username", credentials.getUsername());
+			sendJSON.put("password", credentials.getPassword());
 
-    		DataOutputStream os = new DataOutputStream(uc.getOutputStream());
-    		os.writeBytes(sendJSON.toJSONString());
-    		os.flush();
-    		os.close();
-    		
-    		// Read Response Status Code?
-    		switch (uc.getResponseCode()) {
-    		case 200:
+			DataOutputStream os = new DataOutputStream(uc.getOutputStream());
+			os.writeBytes(sendJSON.toJSONString());
+			os.flush();
+			os.close();
+			
+			// Read Response Status Code?
+			switch (uc.getResponseCode()) {
+			case 200:
 
 				// Parse JSON Response
 				BufferedReader rd = new BufferedReader(new InputStreamReader(uc.getInputStream()));
@@ -134,12 +134,12 @@ public class HttpAuthenticationProvider extends SimpleAuthenticationProvider {
 				// What?
 			}
 
-    	} catch (Exception e) {
-    		logger.info("Exception: " + Arrays.toString(e.getStackTrace()));
-    		// throw e;
-    	}
+		} catch (Exception e) {
+			logger.info("Exception: " + Arrays.toString(e.getStackTrace()));
+			// throw e;
+		}
 
 		return null;
 
-    }
+	}
 }
