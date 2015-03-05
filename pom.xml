@@ -7,7 +7,7 @@
     <groupId>com.edoceo.guacamole.auth</groupId>
     <artifactId>guacamole-auth-http</artifactId>
     <packaging>jar</packaging>
-    <version>2014.38</version>
+    <version>2015.39</version>
     <name>guacamole-auth-http</name>
     <url>http://github.com/edoceo/guacamole-auth-http/</url>
 
