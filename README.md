@@ -46,10 +46,25 @@ The HTTP Serer will be sent
 
 
 The HTTP Server should respond with proper HTTP codes: 200, 403.
-The responding JSON looks like:
+The responding JSON looks like for a VNC:
 
 	{
+		"protocol": "vnc",
 		"name": "Connection Name",
 		"host": "vnc.example.com",
 		"port": 5900
 	}
+
+For RDP you can use:
+
+	{
+		"protocol": "rdp",
+		"name": "Connection Name",
+		"host": "vnc.example.com",
+		"port": 3389,
+		"username": "user@domain.local",
+		"password": "AlocaP4ww0rd",
+		"server-layout": "fr-fr-azerty"
+	}
+
+Notice that ALL field are required for RDP / VNC, the auth module can throw exception if some is missing !

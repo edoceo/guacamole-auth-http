@@ -122,11 +122,26 @@ public class HttpAuthenticationProvider extends SimpleAuthenticationProvider {
 				logger.info("Got the JSON" + json);
 
 				GuacamoleConfiguration config = new GuacamoleConfiguration();
-				config.setProtocol("vnc");
-				config.setParameter("hostname", json.get("host").toString());
-				config.setParameter("port", json.get("port").toString());
+				if(json.get("protocol").toString()=="vnc") {
+					config.setProtocol("vnc");
+
+					config.setParameter("hostname", json.get("host").toString());
+					config.setParameter("port", json.get("port").toString());
 	
-				configs.put(json.get("name").toString(), config);
+					configs.put(json.get("name").toString(), config);
+				} else {
+					if(json.get("protocol").toString()=="rdp") {
+
+						config.setParameter("hostname", json.get("host").toString());
+						config.setParameter("port", json.get("port").toString());
+						config.setParameter("username", json.get("username").toString());
+						config.setParameter("password", json.get("password").toString());
+						config.setParameter("server-layout", json.get("server-layout").toString());
+	
+						configs.put(json.get("name").toString(), config);
+					}
+				}
+
 
 				return configs;
 
