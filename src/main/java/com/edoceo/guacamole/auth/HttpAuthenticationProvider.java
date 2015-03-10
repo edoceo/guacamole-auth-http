@@ -121,18 +121,18 @@ public class HttpAuthenticationProvider extends SimpleAuthenticationProvider {
 			os.flush();
 			os.close();
 			
-			logger.info("JSON Sent" + sendJSON.toJSONString());
+			//logger.info("JSON Sent" + sendJSON.toJSONString());
 			// Read Response Status Code?
 			switch (uc.getResponseCode()) {
 			case 200:
 
 				// Parse JSON Response
-				logger.info("We are in HTTP 200 OK");
+				//logger.info("We are in HTTP 200 OK");
 				BufferedReader rd = new BufferedReader(new InputStreamReader(uc.getInputStream()));
-				logger.info("InputStream ok");
+				//logger.info("InputStream ok");
 				String responsetoparse = org.apache.commons.io.IOUtils.toString(rd);
 
-				logger.info("Response : "+responsetoparse);
+				//logger.info("Response : "+responsetoparse);
 				
 				JSONObject json = (JSONObject)JSONValue.parseWithException(responsetoparse);
 
