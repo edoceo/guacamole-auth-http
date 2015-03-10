@@ -10,6 +10,8 @@ You can copy, symlink or adjust Tomcat{6,7,8} configurations
 	apt-get install libjson-simple-java
 	emerge dev-java/json-simple
 
+You will need also  org.apache.commons classes (to be documented)
+
 From the guacamole-client root clone this project into extensions/
 
 	cd extensions/
@@ -31,7 +33,7 @@ Add the following to your guacamole.properties (/etc/guacamole or /usr/share/tom
 
 ## HTTP Auth Server
 
-The HTTP Serer will be sent
+The HTTP Server will be sent
 
 	POST /external/guacamole HTTP/1.1
 	Accept: application/json
