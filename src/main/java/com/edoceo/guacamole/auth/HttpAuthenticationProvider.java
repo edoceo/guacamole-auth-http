@@ -155,7 +155,7 @@ public class HttpAuthenticationProvider extends SimpleAuthenticationProvider {
 
 					case RDP :
 						logger.info("RDP Protocol engaged");
-						config.setProtocol("vnc");
+						config.setProtocol("rdp");
 
 						config.setParameter("hostname", json.get("host").toString());
 						config.setParameter("port", json.get("port").toString());
