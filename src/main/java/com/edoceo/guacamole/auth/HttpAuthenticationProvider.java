@@ -61,6 +61,14 @@ public class HttpAuthenticationProvider extends SimpleAuthenticationProvider {
 	 */
 	private Map<String, GuacamoleConfiguration> configs;
 
+	/*
+	 * Whate proto we support
+	 */
+	private enum GProto
+	{
+		VNC, RDP;
+	}
+
 	public synchronized void init() throws GuacamoleException {
 		// Nothing
 	}
@@ -98,6 +106,8 @@ public class HttpAuthenticationProvider extends SimpleAuthenticationProvider {
 			}
 			// uc.setRequestProperty(GuacamoleProperties.getRequiredProperty("auth-http-head-add"));
 			uc.setRequestProperty("Content-Type", "application/json; charset=uf-8;");
+			// Add a timeout of 3 seconds
+			uc.setReadTimeout(3*1000);
 			uc.connect();
 
 			// Send
@@ -111,31 +121,65 @@ public class HttpAuthenticationProvider extends SimpleAuthenticationProvider {
 			os.flush();
 			os.close();
 			
+			//logger.info("JSON Sent" + sendJSON.toJSONString());
 			// Read Response Status Code?
 			switch (uc.getResponseCode()) {
 			case 200:
 
 				// Parse JSON Response
+				//logger.info("We are in HTTP 200 OK");
 				BufferedReader rd = new BufferedReader(new InputStreamReader(uc.getInputStream()));
-				JSONObject json = (JSONObject)JSONValue.parseWithException(rd);
+				//logger.info("InputStream ok");
+				String responsetoparse = org.apache.commons.io.IOUtils.toString(rd);
+
+				//logger.info("Response : "+responsetoparse);
+				
+				JSONObject json = (JSONObject)JSONValue.parseWithException(responsetoparse);
 
 				logger.info("Got the JSON" + json);
 
 				GuacamoleConfiguration config = new GuacamoleConfiguration();
-				config.setProtocol("vnc");
-				config.setParameter("hostname", json.get("host").toString());
-				config.setParameter("port", json.get("port").toString());
-	
-				configs.put(json.get("name").toString(), config);
+				String guacaproto = json.get("protocol").toString();
+				//if(json.get("protocol").toString()=="vnc") {
+				logger.info("Protocol " + guacaproto);
+				switch (GProto.valueOf(guacaproto.toUpperCase())) {
+					case VNC :
+						logger.info("VNC Protocol engaged");
+						config.setProtocol("vnc");
 
+						config.setParameter("hostname", json.get("host").toString());
+						config.setParameter("port", json.get("port").toString());
+	
+						configs.put(json.get("name").toString(), config);
+						break;
+
+					case RDP :
+						logger.info("RDP Protocol engaged");
+						config.setProtocol("rdp");
+
+						config.setParameter("hostname", json.get("host").toString());
+						config.setParameter("port", json.get("port").toString());
+						config.setParameter("username", json.get("username").toString());
+						config.setParameter("password", json.get("password").toString());
+						config.setParameter("server-layout", json.get("server-layout").toString());
+	
+						configs.put(json.get("name").toString(), config);
+						break;
+					default:
+						logger.info("arrrrrgl! not supported");
+						return null;
+
+				}
 				return configs;
 
 			default:
+				logger.info("We are NOT in HTTP 200 OK");
 				// What?
 			}
 
 		} catch (Exception e) {
 			logger.info("Exception: " + Arrays.toString(e.getStackTrace()));
+			logger.info("Message: " + e.toString());
 			// throw e;
 		}
 
