@@ -58,11 +58,12 @@ The responding JSON looks like for a VNC:
 	}
 
 For RDP you can use:
+# Note change to host vs hostname parameter
 
 	{
 		"protocol": "rdp",
 		"name": "Connection Name",
-		"host": "vnc.example.com",
+		"hostname": "vnc.example.com",
 		"port": 3389,
 		"username": "user@domain.local",
 		"password": "AlocaP4ww0rd",
