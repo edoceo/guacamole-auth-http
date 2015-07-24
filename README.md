@@ -57,8 +57,7 @@ The responding JSON looks like for a VNC:
 		"port": 5900
 	}
 
-For RDP you can use:
-# Note change to host vs hostname parameter
+For RDP you can use (NOTE: host vs hostname parameter changed with last commit):
 
 	{
 		"protocol": "rdp",
