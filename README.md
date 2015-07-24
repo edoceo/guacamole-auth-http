@@ -53,7 +53,7 @@ The responding JSON looks like for a VNC:
 	{
 		"protocol": "vnc",
 		"name": "Connection Name",
-		"host": "vnc.example.com",
+		"hostname": "vnc.example.com",
 		"port": 5900
 	}
 
