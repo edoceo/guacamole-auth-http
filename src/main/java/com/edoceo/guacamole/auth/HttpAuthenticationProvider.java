@@ -28,6 +28,9 @@ import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.Iterator;
+import java.util.Set;
+import java.lang.String;
 
 // JSON Parser
 import org.json.simple.JSONObject;
@@ -157,12 +160,14 @@ public class HttpAuthenticationProvider extends SimpleAuthenticationProvider {
 						logger.info("RDP Protocol engaged");
 						config.setProtocol("rdp");
 
-						config.setParameter("hostname", json.get("host").toString());
-						config.setParameter("port", json.get("port").toString());
-						config.setParameter("username", json.get("username").toString());
-						config.setParameter("password", json.get("password").toString());
-						config.setParameter("server-layout", json.get("server-layout").toString());
-	
+						// add all of the parameters that are in the json object to the configuration
+						Set keys = json.keySet();
+						Iterator a = keys.iterator();
+						while(a.hasNext()){
+							String paramName = (String)a.next();
+							config.setParameter(paramName, (String)json.get(paramName));
+						}
+
 						configs.put(json.get("name").toString(), config);
 						break;
 					default:
