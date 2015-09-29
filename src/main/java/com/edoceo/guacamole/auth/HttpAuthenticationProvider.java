@@ -73,6 +73,11 @@ public class HttpAuthenticationProvider extends SimpleAuthenticationProvider {
 	}
 
 	@Override
+	public String getIdentifier() {
+		return "guac-auth-http";
+	}
+
+	@Override
 	public Map<String, GuacamoleConfiguration> getAuthorizedConfigurations(Credentials credentials) throws GuacamoleException {
 
 		// Verify Password Inputs
