@@ -43,6 +43,7 @@ import org.slf4j.LoggerFactory;
 import org.glyptodon.guacamole.GuacamoleException;
 import org.glyptodon.guacamole.GuacamoleServerException;
 import org.glyptodon.guacamole.net.auth.simple.SimpleAuthenticationProvider;
+import org.glyptodon.guacamole.net.auth.AuthenticationProvider;
 import org.glyptodon.guacamole.net.auth.Credentials;
 import org.glyptodon.guacamole.properties.FileGuacamoleProperty;
 import org.glyptodon.guacamole.properties.GuacamoleProperties;
@@ -72,10 +73,10 @@ public class HttpAuthenticationProvider extends SimpleAuthenticationProvider {
 		// Nothing
 	}
 
-	@Override
+	/*@Override
 	public String getIdentifier() {
 		return "guac-auth-http";
-	}
+	}*/
 
 	@Override
 	public Map<String, GuacamoleConfiguration> getAuthorizedConfigurations(Credentials credentials) throws GuacamoleException {
