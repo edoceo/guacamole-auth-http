@@ -1,15 +1,14 @@
 /**
- * Copyright (C) 2014 Edoceo, Inc.
-*/
-
-/**
- * Leverage an Up-Stream HTTP(S) Server which provides the authentication and configuration details.
+ * Leverage an Up-Stream HTTP(S) Server which provides the authentication and configuration details. Recent modifications made
+ * to assume that the upstream config provider is going to provide us a valid config. Assuming that protocol is acceptable, configuration bits
+ * should be passed directly to guacamole, etc.
  *
  * Example `guacamole.properties`:
  *
  *  auth-provider: net.sourceforge.guacamole.net.auth.http.HttpAuthenticationProvider
  *
  * @author David Busby / Edoceo, Inc.
+ * @author last update by David Gibbons david.c.gibbons@gmail.com
  * @see http://stackoverflow.com/questions/2793150/how-to-use-java-net-urlconnection-to-fire-and-handle-http-requests
  * @see http://alvinalexander.com/blog/post/java/how-open-url-read-contents-httpurl-connection-java
  * @see http://www.java2blog.com/2013/11/jsonsimple-example-read-and-write-json.html
@@ -29,6 +28,11 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 
+// libraries that we need to do the advanced XML processing
+import java.util.Iterator;
+import java.util.Set;
+import java.lang.String;
+
 // JSON Parser
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -39,15 +43,11 @@ import org.slf4j.LoggerFactory;
 import org.glyptodon.guacamole.GuacamoleException;
 import org.glyptodon.guacamole.GuacamoleServerException;
 import org.glyptodon.guacamole.net.auth.simple.SimpleAuthenticationProvider;
+import org.glyptodon.guacamole.net.auth.AuthenticationProvider;
 import org.glyptodon.guacamole.net.auth.Credentials;
 import org.glyptodon.guacamole.properties.FileGuacamoleProperty;
 import org.glyptodon.guacamole.properties.GuacamoleProperties;
 import org.glyptodon.guacamole.protocol.GuacamoleConfiguration;
-// import org.xml.sax.InputSource;
-// import org.xml.sax.SAXException;
-// import org.xml.sax.XMLReader;
-// import org.xml.sax.helpers.XMLReaderFactory;
-
 
 public class HttpAuthenticationProvider extends SimpleAuthenticationProvider {
 
@@ -62,7 +62,7 @@ public class HttpAuthenticationProvider extends SimpleAuthenticationProvider {
 	private Map<String, GuacamoleConfiguration> configs;
 
 	/*
-	 * Whate proto we support
+	 * What protocols are available
 	 */
 	private enum GProto
 	{
@@ -71,6 +71,10 @@ public class HttpAuthenticationProvider extends SimpleAuthenticationProvider {
 
 	public synchronized void init() throws GuacamoleException {
 		// Nothing
+	}
+
+	public String getIdentifier() {
+		return "guac-auth-http";
 	}
 
 	@Override
@@ -100,12 +104,11 @@ public class HttpAuthenticationProvider extends SimpleAuthenticationProvider {
 			uc.setDoOutput(true);
 			uc.setDoInput(true);
 
-			// // uc.setRequestProperty("Accept-Charset");
 			if (head_auth.length() > 0) {
 				uc.setRequestProperty("Authorization", head_auth);
 			}
-			// uc.setRequestProperty(GuacamoleProperties.getRequiredProperty("auth-http-head-add"));
 			uc.setRequestProperty("Content-Type", "application/json; charset=uf-8;");
+
 			// Add a timeout of 3 seconds
 			uc.setReadTimeout(3*1000);
 			uc.connect();
@@ -120,14 +123,12 @@ public class HttpAuthenticationProvider extends SimpleAuthenticationProvider {
 			os.writeBytes(sendJSON.toJSONString());
 			os.flush();
 			os.close();
-			
-			//logger.info("JSON Sent" + sendJSON.toJSONString());
-			// Read Response Status Code?
-			switch (uc.getResponseCode()) {
-			case 200:
 
-				// Parse JSON Response
-				//logger.info("We are in HTTP 200 OK");
+			// Read Response Status Code?
+			if(uc.getResponseCode() != 200){
+			    logger.info("HTTP Response code was " + uc.getResponseCode());
+			    return null;
+			}else{
 				BufferedReader rd = new BufferedReader(new InputStreamReader(uc.getInputStream()));
 				//logger.info("InputStream ok");
 				String responsetoparse = org.apache.commons.io.IOUtils.toString(rd);
@@ -139,44 +140,23 @@ public class HttpAuthenticationProvider extends SimpleAuthenticationProvider {
 				logger.info("Got the JSON" + json);
 
 				GuacamoleConfiguration config = new GuacamoleConfiguration();
-				String guacaproto = json.get("protocol").toString();
-				//if(json.get("protocol").toString()=="vnc") {
-				logger.info("Protocol " + guacaproto);
-				switch (GProto.valueOf(guacaproto.toUpperCase())) {
-					case VNC :
-						logger.info("VNC Protocol engaged");
-						config.setProtocol("vnc");
 
-						config.setParameter("hostname", json.get("host").toString());
-						config.setParameter("port", json.get("port").toString());
-	
-						configs.put(json.get("name").toString(), config);
-						break;
+                // set the protocol in our config. assume that json is passing in a valid config.
+                config.setProtocol(json.get("protocol").toString().toLowerCase());
 
-					case RDP :
-						logger.info("RDP Protocol engaged");
-						config.setProtocol("rdp");
+				// add all of the parameters that are in the json object to the configuration
+                Set keys = json.keySet();
+                Iterator a = keys.iterator();
+                while(a.hasNext()){
+                    String paramName = (String)a.next();
+                    config.setParameter(paramName, (String)json.get(paramName));
+                }
 
-						config.setParameter("hostname", json.get("host").toString());
-						config.setParameter("port", json.get("port").toString());
-						config.setParameter("username", json.get("username").toString());
-						config.setParameter("password", json.get("password").toString());
-						config.setParameter("server-layout", json.get("server-layout").toString());
-	
-						configs.put(json.get("name").toString(), config);
-						break;
-					default:
-						logger.info("arrrrrgl! not supported");
-						return null;
+                // put the connection name into the config
+                configs.put(json.get("name").toString(), config);
 
-				}
 				return configs;
-
-			default:
-				logger.info("We are NOT in HTTP 200 OK");
-				// What?
 			}
-
 		} catch (Exception e) {
 			logger.info("Exception: " + Arrays.toString(e.getStackTrace()));
 			logger.info("Message: " + e.toString());
@@ -184,6 +164,5 @@ public class HttpAuthenticationProvider extends SimpleAuthenticationProvider {
 		}
 
 		return null;
-
 	}
 }
